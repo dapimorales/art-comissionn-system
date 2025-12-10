@@ -99,7 +99,7 @@
 
 File ini akan berisi *tag* penutup dan koneksi JavaScript Bootstrap.
 
-```php -->
+```php ...-->
 </div> </div> <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
