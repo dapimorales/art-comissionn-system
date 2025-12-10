@@ -27,6 +27,19 @@ class Pembayaran_model extends CI_Model {
         
         return $this->db->trans_status();
     }
+
+    /**
+     * READ: Menghitung total pembayaran yang statusnya 'Menunggu' verifikasi
+     * Digunakan untuk Dashboard Admin
+     */
+    public function count_pembayaran_pending() {
+        // FIX: Mengganti kolom 'status_verifikasi' menjadi 'status_pembayaran' 
+        //      dan nilai 'Menunggu' menjadi 'Menunggu Verifikasi'
+        $this->db->where('status_pembayaran', 'Menunggu Verifikasi');
+        return $this->db->from($this->table)->count_all_results();
+    }
     
-    // ... (Fungsi untuk Admin: verifikasi, list transaksi)
+    // Anda mungkin juga perlu menambahkan fungsi get_pembayaran_pending_for_admin
+    // di sini jika Anda memindahkannya dari controller Pembayaran.php
+
 }

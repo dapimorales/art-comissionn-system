@@ -18,24 +18,39 @@ class Tahapan_proyek extends CI_Controller {
     }
 
     // Fungsi READ: Menampilkan semua data tahapan
+    // application/controllers/Tahapan_proyek.php
+
+// ... (di dalam class Tahapan_proyek)
+
+    // Fungsi READ: Menampilkan semua data tahapan
     public function index() {
         $data['title'] = 'Data Master Tahapan Proyek';
-        $data['tahapan_proyek'] = $this->Tahapan_proyek_model->get_all_tahapan();
+        
+        // FIX: Pastikan data yang dikembalikan adalah array, bukan object null
+        $tahapan_data = $this->Tahapan_proyek_model->get_all_tahapan();
+        
+        // FIX BARU: Jika data tidak ditemukan (null), set sebagai array kosong.
+        // Ini MENCEGAH WARNING PHP di view saat data kosong.
+        if ($tahapan_data === NULL) {
+             $data['tahapan_proyek'] = array();
+        } else {
+             $data['tahapan_proyek'] = $tahapan_data;
+        }
         
         $this->load->view('layout/v_header', $data);
         $this->load->view('master/tahapan_proyek/v_list', $data); 
         $this->load->view('layout/v_footer');
     }
 
+// ...
     // Fungsi CREATE/UPDATE: Form Tambah/Edit
-    public function form($id_tahapan = null) {
-        if ($id_tahapan) {
+    public function form($id_tahap = null) { // FIX: Menggunakan id_tahap
+        if ($id_tahap) {
             $data['title'] = 'Edit Tahapan Proyek';
-            $data['tahapan'] = $this->Tahapan_proyek_model->get_tahapan_by_id($id_tahapan);
+            $data['tahapan'] = $this->Tahapan_proyek_model->get_tahapan_by_id($id_tahap);
             if (!$data['tahapan']) { show_404(); }
         } else {
             $data['title'] = 'Tambah Tahapan Proyek Baru';
-            // Default object untuk form kosong
             $data['tahapan'] = (object) array('nama_tahapan' => '', 'deskripsi' => '', 'urutan' => '');
         }
 
@@ -47,12 +62,12 @@ class Tahapan_proyek extends CI_Controller {
     // Fungsi CREATE/UPDATE: Proses Simpan
     public function simpan() {
         $this->form_validation->set_rules('nama_tahapan', 'Nama Tahapan', 'required|trim');
-        $this->form_validation->set_rules('urutan', 'Urutan', 'required|numeric|is_unique[tahapan_proyek.urutan]'); // Urutan harus unik
+        $this->form_validation->set_rules('urutan', 'Urutan', 'required|numeric'); 
         
-        $id_tahapan = $this->input->post('id_tahapan');
+        $id_tahap = $this->input->post('id_tahap'); // FIX: Mengambil id_tahap
 
         if ($this->form_validation->run() == FALSE) {
-            $this->form($id_tahapan); 
+            $this->form($id_tahap); 
         } else {
             $data = array(
                 'nama_tahapan' => $this->input->post('nama_tahapan'),
@@ -60,9 +75,9 @@ class Tahapan_proyek extends CI_Controller {
                 'urutan'       => $this->input->post('urutan')
             );
 
-            if ($id_tahapan) {
+            if ($id_tahap) {
                 // Proses Update
-                $this->Tahapan_proyek_model->update_tahapan($id_tahapan, $data);
+                $this->Tahapan_proyek_model->update_tahapan($id_tahap, $data);
                 $this->session->set_flashdata('success', 'Tahapan Proyek berhasil diperbarui.');
             } else {
                 // Proses Insert
@@ -74,8 +89,8 @@ class Tahapan_proyek extends CI_Controller {
     }
 
     // Fungsi DELETE
-    public function hapus($id_tahapan) {
-        if ($this->Tahapan_proyek_model->delete_tahapan($id_tahapan)) {
+    public function hapus($id_tahap) { // FIX: Menggunakan id_tahap
+        if ($this->Tahapan_proyek_model->delete_tahapan($id_tahap)) {
             $this->session->set_flashdata('success', 'Tahapan Proyek berhasil dihapus.');
         } else {
             $this->session->set_flashdata('error', 'Gagal menghapus data.');
