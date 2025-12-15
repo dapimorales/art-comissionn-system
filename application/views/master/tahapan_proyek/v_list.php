@@ -16,19 +16,32 @@
     </thead>
     <tbody>
         <?php 
+        // CEK 1: Hanya jalankan jika ada data di array
         if (!empty($tahapan_proyek)): 
         ?>
-            <?php foreach ($tahapan_proyek as $tahapan): ?>
+            <?php 
+            // CEK 2: Mulai perulangan foreach
+            foreach ($tahapan_proyek as $tahapan): 
+            ?>
             <tr>
                 <td><?= $tahapan->urutan; ?></td>
-                <td><?= $tahapan->nama_tahapan; ?></td> 
+                
+                <td><?= $tahapan->nama_tahap; ?></td> 
+                
                 <td><?= $tahapan->deskripsi; ?></td>
+                
                 <td>
-                    </td>
+                    <a href="<?= base_url('tahapan_proyek/form/' . $tahapan->id_tahap); ?>" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="<?= base_url('tahapan_proyek/hapus/' . $tahapan->id_tahap); ?>" 
+                       class="btn btn-sm btn-danger" 
+                       onclick="return confirm('Yakin ingin menghapus data ini?')">Hapus</a>
+                </td>
             </tr>
-            <?php endforeach; ?>
+            <?php 
+            endforeach;
+            ?>
         <?php else: ?>
-             <tr><td colspan="4" class="text-center">Belum ada data tahapan proyek.</td></tr>
+             <tr><td colspan="4" class="text-center">Belum ada data tahapan proyek. Klik "Tambah Tahapan Baru" untuk memulai.</td></tr>
         <?php endif; ?>
     </tbody>
 </table>
