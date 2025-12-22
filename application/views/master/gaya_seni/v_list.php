@@ -1,4 +1,3 @@
-<h2>Data Gaya Seni</h2>
 <a href="<?= base_url('gaya_seni/form'); ?>" class="btn btn-primary">➕ Tambah Gaya Baru</a>
 
 <?php if ($this->session->flashdata('success')): ?>

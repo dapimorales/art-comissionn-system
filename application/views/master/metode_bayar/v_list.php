@@ -1,4 +1,3 @@
-<h2>Data Master Metode Pembayaran</h2>
 <a href="<?= base_url('metode_bayar/form'); ?>" class="btn btn-primary mb-3">➕ Tambah Metode Baru</a>
 
 <?php if ($this->session->flashdata('success')): ?>

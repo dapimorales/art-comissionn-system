@@ -99,6 +99,10 @@ class Komisi extends CI_Controller {
 // ... (di dalam class Komisi extends CI_Controller)
 
     // Fungsi Admin: Menampilkan daftar komisi berdasarkan status (seperti di Dashboard)
+    // application/controllers/Komisi.php
+
+   // application/controllers/Komisi.php
+
     public function list_admin($status = null) {
         if ($this->session->userdata('role') != 'admin') {
             redirect('dashboard'); 
@@ -106,16 +110,25 @@ class Komisi extends CI_Controller {
 
         $data['title'] = 'Daftar Komisi';
         
-        // Filter berdasarkan status jika status diberikan (cth: /komisi/list_admin/In Progress)
         if ($status) {
-            $data['komisi_list'] = $this->Komisi_model->get_all_komisi_by_status($status); // Perlu buat fungsi ini di Model
-            $data['title'] = 'Daftar Komisi Status: ' . ucfirst($status);
+            // PERBAIKAN: Menyamakan penulisan status dari URL ke format Database
+            $status_query = $status;
+            
+            if ($status == 'inprogress') {
+                $status_query = 'In Progress'; // Sesuaikan dengan spasi di database
+            } elseif ($status == 'completed') {
+                $status_query = 'Completed';   // Sesuaikan dengan Huruf Kapital C
+            }
+
+            // Cari data di model menggunakan status yang sudah diperbaiki
+            $data['komisi_list'] = $this->Komisi_model->get_all_komisi_by_status($status_query); 
+            $data['title'] = 'Daftar Komisi Status: ' . $status_query;
         } else {
-            $data['komisi_list'] = $this->Komisi_model->get_all_komisi(); // Ambil semua
+            $data['komisi_list'] = $this->Komisi_model->get_all_komisi();
         }
 
         $this->load->view('layout/v_header', $data);
-        $this->load->view('transaksi/komisi/v_admin_list', $data); // Buat view ini
+        $this->load->view('transaksi/komisi/v_admin_list', $data);
         $this->load->view('layout/v_footer');
     }
 }

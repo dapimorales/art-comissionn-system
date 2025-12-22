@@ -1,4 +1,3 @@
-<h2>Data Tipe Komisi</h2>
 <a href="<?= base_url('tipe_komisi/form'); ?>" class="btn btn-primary">➕ Tambah Tipe Baru</a>
 
 <?php if ($this->session->flashdata('success')): ?>

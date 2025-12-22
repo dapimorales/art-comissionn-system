@@ -1,5 +1,3 @@
-<h2>Form Pemesanan Komisi Baru</h2>
-
 <form action="<?= base_url('komisi/proses_pesan'); ?>" method="post">
     
     <div class="form-group">

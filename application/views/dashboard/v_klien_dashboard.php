@@ -1,73 +1,83 @@
 <div class="container-fluid">
-    <h2>👋 Selamat Datang, <?= $user['nama']; ?>!</h2>
-    <p>Lihat status terbaru pesanan komisi karya seni Anda di sini.</p>
-    <hr>
-
-    <div class="row mb-4">
+    <h2 class="main-title">👋 Selamat Datang, <?= $user['nama']; ?>!</h2>
+    <p class="lead text-muted mb-5">Dashboard ringkasan pesanan komisi karya seni Anda.</p>
+    
+    <div class="row mb-5">
         <?php 
-        $status_map = [
-            'Pending' => ['text' => 'Menunggu Pembayaran', 'color' => 'bg-warning text-dark', 'link' => 'komisi'],
-            'Menunggu Verifikasi' => ['text' => 'Menunggu Verifikasi Admin', 'color' => 'bg-danger text-white', 'link' => 'komisi'],
-            'In Progress' => ['text' => 'Sedang Dikerjakan', 'color' => 'bg-info text-white', 'link' => 'komisi'],
-            'Completed' => ['text' => 'Selesai', 'color' => 'bg-success text-white', 'link' => 'komisi']
-        ];
-        
+        $all_counts = []; 
         $total_pesanan = 0;
         foreach($komisi_stats as $stat) {
              $total_pesanan += $stat->total;
+             $all_counts[$stat->status_komisi] = $stat->total;
         }
 
-        foreach ($status_map as $key => $map): ?>
-            <?php 
-                $count = 0;
-                foreach($komisi_stats as $stat) {
-                    if ($stat->status_komisi == $key) $count = $stat->total;
-                }
-            ?>
-            <div class="col-md-3">
-                <div class="card <?= $map['color']; ?> mb-2">
-                    <div class="card-body">
-                        <h6 class="card-title"><?= $map['text']; ?></h6>
-                        <p class="card-text display-4"><?= $count; ?></p>
-                    </div>
+        // Menggabungkan status terkait Pembayaran dan Verifikasi
+        $count_pembayaran_aktif = ($all_counts['Pending'] ?? 0) + ($all_counts['Menunggu Verifikasi'] ?? 0) + ($all_counts['Sudah Dibayar'] ?? 0);
+        $count_in_progress = $all_counts['In Progress'] ?? 0;
+        $count_completed = $all_counts['Completed'] ?? 0;
+        ?>
+
+        <div class="col-md-3 mb-4">
+            <div class="stat-card card-verification">
+                <div class="card-body">
+                    <h5 class="card-title">💵 Pembayaran Aktif</h5>
+                    <p class="card-text display-4"><?= $count_pembayaran_aktif; ?></p>
+                    <a href="<?= base_url('komisi'); ?>" class="text-white">Detail Pembayaran &rarr;</a>
                 </div>
             </div>
-        <?php endforeach; ?>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="stat-card card-progress">
+                <div class="card-body">
+                    <h5 class="card-title">⏳ Sedang Dikerjakan</h5>
+                    <p class="card-text display-4"><?= $count_in_progress; ?></p>
+                    <a href="<?= base_url('komisi'); ?>" class="text-white">Lihat Progres &rarr;</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="stat-card card-completed">
+                <div class="card-body">
+                    <h5 class="card-title">✅ Selesai</h5>
+                    <p class="card-text display-4"><?= $count_completed; ?></p>
+                    <a href="<?= base_url('komisi'); ?>" class="text-white">Lihat Arsip &rarr;</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+             <div class="stat-card card-total">
+                <div class="card-body">
+                    <h5 class="card-title">📜 Total Semua Pesanan</h5>
+                    <p class="card-text display-4"><?= $total_pesanan; ?></p>
+                    <a href="<?= base_url('komisi'); ?>" class="text-white">Riwayat Komisi &rarr;</a>
+                </div>
+            </div>
+        </div>
     </div>
     
-    <a href="<?= base_url('komisi/form'); ?>" class="btn btn-primary mb-4">🎨 Buat Pesanan Komisi Baru</a>
-
-    <h3>Riwayat Pesanan Anda (<?= $total_pesanan; ?> Total Pesanan)</h3>
+    <a href="<?= base_url('komisi/form'); ?>" class="btn btn-lg btn-primary mb-5" style="background-color: #FF6F61; border-color: #FF6F61;">
+        ✨ Buat Pesanan Komisi Baru
+    </a>
     
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Gaya & Tipe</th>
-                <th>Harga</th>
-                <th>Status</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php if (!empty($komisi_list)): ?>
-                <?php foreach ($komisi_list as $komisi): ?>
-                <tr>
-                    <td>#<?= $komisi->id_komisi; ?></td>
-                    <td><?= $komisi->nama_gaya; ?> - <?= $komisi->nama_tipe; ?></td>
-                    <td>Rp <?= number_format($komisi->total_harga, 0, ',', '.'); ?></td>
-                    <td><span class="badge <?= $status_map[$komisi->status_komisi]['color']; ?>"><?= $komisi->status_komisi; ?></span></td>
-                    <td>
-                        <a href="<?= base_url('progress/detail/' . $komisi->id_komisi); ?>" class="btn btn-sm btn-info">Progres/Feedback</a>
-                        <?php if ($komisi->status_komisi == 'Pending'): ?>
-                            <a href="<?= base_url('pembayaran/form/' . $komisi->id_komisi); ?>" class="btn btn-sm btn-success">Bayar Sekarang</a>
-                        <?php endif; ?>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <tr><td colspan="5" class="text-center">Anda belum memiliki riwayat pesanan.</td></tr>
-            <?php endif; ?>
-        </tbody>
-    </table>
-</div>
+    <h3 class="mt-5 mb-4">🎨 Galeri Contoh Karya</h3>
+    <p class="text-muted">Lihat berbagai gaya seni yang dapat Anda pesan.</p>
+    
+    <div class="row portfolio-grid mb-5">
+        <div class="col-md-3 mb-4">
+            <img src="<?= base_url('assets/portfolio/karya1.jpg'); ?>" class="img-fluid w-100 shadow-sm" alt="Contoh Karya 1">
+        </div>
+        <div class="col-md-3 mb-4">
+            <img src="<?= base_url('assets/portfolio/karya2.jpg'); ?>" class="img-fluid w-100 shadow-sm" alt="Contoh Karya 2">
+        </div>
+        <div class="col-md-3 mb-4">
+            <img src="<?= base_url('assets/portfolio/karya3.jpg'); ?>" class="img-fluid w-100 shadow-sm" alt="Contoh Karya 3">
+        </div>
+        <div class="col-md-3 mb-4">
+            <img src="<?= base_url('assets/portfolio/karya4.jpg'); ?>" class="img-fluid w-100 shadow-sm" alt="Contoh Karya 4">
+        </div>
+    </div>
+
+    </div>

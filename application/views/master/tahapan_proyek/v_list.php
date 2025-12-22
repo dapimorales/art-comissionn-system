@@ -1,4 +1,3 @@
-<h2>Data Master Tahapan Proyek</h2>
 <a href="<?= base_url('tahapan_proyek/form'); ?>" class="btn btn-primary mb-3">➕ Tambah Tahapan Baru</a>
 
 <?php if ($this->session->flashdata('success')): ?>
