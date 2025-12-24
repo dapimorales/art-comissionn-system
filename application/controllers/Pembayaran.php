@@ -51,44 +51,102 @@ class Pembayaran extends CI_Controller {
     // PROSES KONFIRMASI KLIEN
     // =========================
     public function proses_konfirmasi() {
-        $this->form_validation->set_rules(
-            'id_metode_bayar',
-            'Metode Pembayaran',
-            'required'
-        );
+    $this->form_validation->set_rules(
+        'id_metode_bayar',
+        'Metode Pembayaran',
+        'required'
+    );
 
-        $id_komisi = $this->input->post('id_komisi');
+    $id_komisi = $this->input->post('id_komisi');
 
-        if ($this->form_validation->run() == FALSE) {
-            $this->form($id_komisi);
-        } else {
-
-            $data_pembayaran = [
-                'id_komisi'         => $id_komisi,
-                'id_metode_bayar'   => $this->input->post('id_metode_bayar'),
-                'jumlah_bayar'      => $this->input->post('jumlah_bayar'),
-                'tanggal_bayar'     => $this->input->post('tanggal_bayar'),
-                'status_pembayaran' => 'Menunggu Verifikasi',
-                'bukti_bayar'       => 'N/A'
-            ];
-
-            if ($this->Pembayaran_model
-                ->insert_pembayaran($data_pembayaran, $id_komisi)) {
-
-                $this->session->set_flashdata(
-                    'success',
-                    'Konfirmasi pembayaran berhasil. Menunggu verifikasi admin.'
-                );
-            } else {
-                $this->session->set_flashdata(
-                    'error',
-                    'Gagal memproses pembayaran, coba lagi.'
-                );
-            }
-
-            redirect('komisi');
-        }
+    if ($this->form_validation->run() == FALSE) {
+        $this->form($id_komisi);
+        return;
     }
+
+    // =========================
+    // CEK DOUBLE PEMBAYARAN
+    // =========================
+    $cek_pending = $this->db->get_where(
+        'transaksi_pembayaran',
+        [
+            'id_komisi' => $id_komisi,
+            'status_pembayaran' => 'Menunggu Verifikasi'
+        ]
+    )->row();
+
+    if ($cek_pending) {
+        $this->session->set_flashdata(
+            'error',
+            'Pembayaran untuk komisi ini sudah dikonfirmasi dan menunggu verifikasi.'
+        );
+        redirect('komisi');
+        return;
+    }
+
+    // =========================
+    // UPLOAD BUKTI BAYAR (WAJIB)
+    // =========================
+    if (empty($_FILES['bukti_bayar']['name'])) {
+        $this->session->set_flashdata(
+            'error',
+            'Bukti pembayaran wajib diupload.'
+        );
+        $this->form($id_komisi);
+        return;
+    }
+
+    $config['upload_path'] = './assets/bukti_bayar/';
+    $config['allowed_types'] = 'jpg|jpeg|png';
+    $config['max_size']      = 2048;
+    $config['file_name']     = 'bukti_' . $id_komisi . '_' . time();
+
+    $this->load->library('upload', $config);
+
+    if (!$this->upload->do_upload('bukti_bayar')) {
+        $this->session->set_flashdata(
+            'error',
+            $this->upload->display_errors('', '')
+        );
+        $this->form($id_komisi);
+        return;
+    }
+
+    $uploadData = $this->upload->data();
+
+    // =========================
+    // DATA PEMBAYARAN
+    // =========================
+    $data_pembayaran = [
+        'id_komisi'         => $id_komisi,
+        'id_metode_bayar'   => $this->input->post('id_metode_bayar'),
+        'jumlah_bayar'      => $this->input->post('jumlah_bayar'),
+        'tanggal_bayar'     => date('Y-m-d H:i:s'),
+        'status_pembayaran' => 'Menunggu Verifikasi',
+        'bukti_bayar'       => $uploadData['file_name']
+    ];
+
+    if ($this->Pembayaran_model
+        ->insert_pembayaran($data_pembayaran, $id_komisi)) {
+
+        $this->session->set_flashdata(
+            'success',
+            'Konfirmasi pembayaran berhasil. Menunggu verifikasi admin.'
+        );
+    } else {
+        // rollback file kalau DB gagal
+        @unlink('./assets/bukti_bayar/' . $uploadData['file_name']);
+
+
+        $this->session->set_flashdata(
+            'error',
+            'Gagal memproses pembayaran, coba lagi.'
+        );
+    }
+
+    redirect('komisi');
+}
+
 
     // =========================
     // ADMIN - LIST VERIFIKASI
